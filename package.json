@@ -1,0 +1,19 @@
+{
+  "name": "upbit",
+  "version": "1.0.0",
+  "description": "upbit",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run dev"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "api": "^6.1.1",
+    "axios": "^1.6.7",
+    "jsonwebtoken": "^9.0.2",
+    "mysql": "^2.18.1",
+    "querystring": "^0.2.1",
+    "request": "^2.88.2"
+  }
+}
