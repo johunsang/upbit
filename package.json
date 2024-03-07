@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "shoot": "pkg --targets node18-linux-x64,node18-macos-x64,node18-win-x64 --output ./dist/shoot/shoot ./shoot/shoot.js && shx cp ./shoot/config.json ./dist/shoot && shx cp ./shoot/read.me ./dist/shoot && shx cp ./shoot/val.json ./dist/shoot"
+    "shoot": "node shoot/shoot.js",
+    "shoot-build": "pkg --targets node18-linux-x64,node18-macos-x64,node18-win-x64 --output ./dist/shoot/shoot ./shoot/shoot.js && shx cp ./shoot/config.json ./dist/shoot && shx cp ./shoot/read.me ./dist/shoot && shx cp ./shoot/val.json ./dist/shoot"
   },
   "author": "OCTO",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.6.7",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "querystring": "^0.2.1",
