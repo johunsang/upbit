@@ -1,19 +1,22 @@
 {
   "name": "upbit",
   "version": "1.0.0",
-  "description": "upbit",
-  "main": "index.js",
+  "description": "",
   "scripts": {
-    "test": "npm run dev"
+    "shoot": "pkg --targets node18-linux-x64,node18-macos-x64,node18-win-x64 --output ./dist/shoot/shoot ./shoot/shoot.js && shx cp ./shoot/config.json ./dist/shoot && shx cp ./shoot/read.me ./dist/shoot && shx cp ./shoot/val.json ./dist/shoot"
   },
-  "author": "",
+  "author": "OCTO",
   "license": "ISC",
   "dependencies": {
-    "api": "^6.1.1",
-    "axios": "^1.6.7",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "querystring": "^0.2.1",
     "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "cross-zip": "^4.0.1",
+    "cross-zip-cli": "^1.0.0",
+    "pkg": "^5.8.1",
+    "shx": "^0.3.4"
   }
 }

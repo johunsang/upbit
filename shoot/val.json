@@ -1,0 +1,19 @@
+{
+  "invest": 10000,
+  "margin": 1,
+  "isTargetInclude24Price": true,
+  "isTargetInclude24Volume": true,
+  "isTargetIncludeChkClosingPrice": true,
+  "targetMarketMaxSize": 100,
+  "target1": 0.3,
+  "target3": 0.3,
+  "target10": 0.5,
+  "target15": 1,
+  "target30": 1.5,
+  "target60": 2,
+  "isChckSortTrend": false,
+  "isChckLongTrend": false,
+  "isAllTargetBiggerThanZero": false,
+  "sellLoopMaxCount": 3600,
+  "sellLoopIntervalSec": 1
+}
