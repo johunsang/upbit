@@ -4,298 +4,136 @@ const sign = require("jsonwebtoken").sign;
 const crypto = require("crypto");
 const queryEncode = require("querystring").encode;
 
-exports.getToken = (access_key, secret_key) => {
-  let payload = {
-    access_key: access_key,
+function createRequestPromise(options) {
+  return new Promise((resolve, reject) => {
+    request(options, (error, response, body) => {
+      if (error) {
+        reject({ success: false, message: error.message });
+      } else {
+        let json = {};
+        try {
+          json = JSON.parse(body);
+        } catch (e) {
+          console.error(e);
+          reject({ success: false, message: e.message });
+        }
+        if (json.error) {
+          console.log("업비트 API 요청 중 에러 발생 ");
+          console.error("업비트 에러 --> ",json.error);
+          resolve({ success: false, message: json.error.message });
+        }
+        resolve({ success: true, message: "success", data: json });
+      }
+    });
+  });
+}
+
+function handleError(error) {
+  console.error(error);
+  console.log("업비트 API 요청 중 에러 발생 ");
+  return { success: false, message: error.message };
+}
+
+exports.getToken = (accessKey, secretKey) => {
+  const payload = {
+    access_key: accessKey,
     nonce: uuidv4(),
   };
 
-  let token = sign(payload, secret_key);
-  return token;
+  return sign(payload, secretKey);
 };
 
-exports.getUserTokens = (access_key, secret_key, params) => {
+exports.getUserToken = (accessKey, secretKey, params) => {
   const query = queryEncode(params);
-
   const hash = crypto.createHash("sha512");
   const queryHash = hash.update(query, "utf-8").digest("hex");
 
   const payload = {
-    access_key: access_key,
+    access_key: accessKey,
     nonce: uuidv4(),
     query_hash: queryHash,
     query_hash_alg: "SHA512",
   };
 
-  const token = sign(payload, secret_key);
-  return token;
+  return sign(payload, secretKey);
 };
 
-exports.getMarketAllFromUpBit = (token) => {
-  return new Promise((resolve, reject) => {
-    const options = {
-      method: "GET",
-      url: "https://api.upbit.com/v1/market/all",
-      headers: { Authorization: `Bearer ${token}` },
-    };
+exports.getMarketAll = async (token) => {
+  const options = {
+    method: "GET",
+    url: "https://api.upbit.com/v1/market/all",
+    headers: { Authorization: `Bearer ${token}` },
+  };
 
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      const data = JSON.parse(body);
-      resolve({
-        success: true,
-        message: "success",
-        data: data,
-      });
-    });
-  });
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
 };
 
-exports.getCandles = (market, token) => {
-  return new Promise((resolve, reject) => {
-    const params = {
-      market: market,
-      count: 200,
-    };
+exports.getCandles = async (market, token, type = "minutes", unit = 1, count = 200) => {
+  const options = {
+    method: "GET",
+    url: `https://api.upbit.com/v1/candles/${type}/${unit}?market=${market}&count=${count}`,
+    headers: { Authorization: `Bearer ${token}` },
+  };
 
-    let url = "https://api.upbit.com/v1/candles/minutes/" + 1 + "?" + new URLSearchParams(params);
-
-    const options = {
-      method: "GET",
-      url: url,
-      headers: { Authorization: `Bearer ${token}` },
-    };
-
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      const data = JSON.parse(body);
-      resolve({
-        success: true,
-        message: "success",
-        data: data,
-      });
-    });
-  });
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
 };
 
-exports.getCandlesMin = (market, token,   min) => {
-  return new Promise((resolve, reject) => {
-    const params = {
-      market: market,
-      count: 200,
-    };
+exports.getCandlesDay = async (market, token) => {
+  const options = {
+    method: "GET",
+    url: `https://api.upbit.com/v1/candles/days?market=${market}&count=200`,
+    headers: { Authorization: `Bearer ${token}` },
+  };
 
-    let url = "https://api.upbit.com/v1/candles/minutes/" + min + "?" + new URLSearchParams(params);
-
-    const options = {
-      method: "GET",
-      url: url,
-      headers: { Authorization: `Bearer ${token}` },
-    };
-
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      const data = JSON.parse(body);
-      resolve({
-        success: true,
-        message: "success",
-        data: data,
-      });
-    });
-  });
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
 };
 
-exports.getCandlesDay = (market, token) => {
-  return new Promise((resolve, reject) => {
-    const params = {
-      market: market,
-      count: 200,
-    };
+exports.getTicker = async (markets, token) => {
+  const options = {
+    method: "GET",
+    url: `https://api.upbit.com/v1/ticker?markets=${markets}`,
+    headers: { Authorization: `Bearer ${token}` },
+  };
 
-    let url = "https://api.upbit.com/v1/candles/days?" + new URLSearchParams(params);
-
-    const options = {
-      method: "GET",
-      url: url,
-      headers: { Authorization: `Bearer ${token}` },
-    };
-
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      const data = JSON.parse(body);
-      resolve({
-        success: true,
-        message: "success",
-        data: data,
-      });
-    });
-  });
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
 };
 
-exports.getCandlesWeek = (market, token) => {
-  return new Promise((resolve, reject) => {
-    const params = {
-      market: market,
-      count: 200,
-    };
+exports.getOrderBook = async (market, token) => {
+  const options = {
+    method: "GET",
+    url: `https://api.upbit.com/v1/orderbook?markets=${market}&level=0`,
+    headers: { Authorization: `Bearer ${token}` },
+  };
 
-    let url = "https://api.upbit.com/v1/candles/weeks?" + new URLSearchParams(params);
-
-    const options = {
-      method: "GET",
-      url: url,
-      headers: { Authorization: `Bearer ${token}` },
-    };
-
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      const data = JSON.parse(body);
-      resolve({
-        success: true,
-        message: "success",
-        data: data,
-      });
-    });
-  });
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
 };
 
-
-exports.getCandlesMonth = (market, token) => {
-  return new Promise((resolve, reject) => {
-    const params = {
-      market: market,
-      count: 200,
-    };
-
-    let url = "https://api.upbit.com/v1/candles/months?" + new URLSearchParams(params);
-
-    const options = {
-      method: "GET",
-      url: url,
-      headers: { Authorization: `Bearer ${token}` },
-    };
-
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      const data = JSON.parse(body);
-      resolve({
-        success: true,
-        message: "success",
-        data: data,
-      });
-    });
-  });
-};
-
-
-
-exports.getSnapSot = (markets, token) => {
-  return new Promise((resolve, reject) => {
-    const params = {
-      markets: markets,
-    };
-
-    const options = {
-      method: "GET",
-      url: "https://api.upbit.com/v1/ticker" + "?" + new URLSearchParams(params),
-      headers: { Authorization: `Bearer ${token}` },
-    };
-
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error("error:", error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      try {
-        const data = JSON.parse(body);
-        // console.log(data);
-        resolve({
-          success: true,
-          message: "success",
-          data: data,
-        });
-      } catch (e) {
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-    });
-  });
-};
-
-exports.getOrderBook = (market, token) => {
-  return new Promise((resolve, reject) => {
-    const params = {
-      markets: market,
-      level: 0,
-    };
-
-    const options = {
-      method: "GET",
-      url: "https://api.upbit.com/v1/orderbook" + "?" + new URLSearchParams(params),
-      headers: { Authorization: `Bearer ${token}` },
-    };
-
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      const data = JSON.parse(body);
-      resolve({
-        success: true,
-        message: "success",
-        data: data,
-      });
-    });
-  });
-};
-
-exports.orderToUpbit = (body, userToken) => {
+exports.createOrder = async (body, userToken) => {
   return new Promise((resolve, reject) => {
     const options = {
       method: "POST",
@@ -304,63 +142,33 @@ exports.orderToUpbit = (body, userToken) => {
       json: body,
     };
 
-    request(options, (error, response, body) => {
-      if (error) {
-        console.log("error", error);
-        console.error(error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      } else {
-        console.log(body);
-        resolve({
-          success: true,
-          message: "success",
-          data: body,
-        });
-      }
-    });
+    try {
+      request(options, (error, response, body2) => {
+        if (error) {
+          console.error(error);
+          reject({ success: false, message: error.message });
+        } else {
+          resolve({ success: true, message: "success", body2 });
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      return handleError(error);
+    }
   });
 };
 
-exports.getOrderDetail = (params, userToken) => {
-  return new Promise((resolve, reject) => {
-    const options = {
-      method: "GET",
-      url: "https://api.upbit.com/v1/order" + "?" + new URLSearchParams(params),
-      headers: { Authorization: `Bearer ${userToken}` },
-    };
+exports.getOrder = async (params, userToken) => {
+  const options = {
+    method: "GET",
+    url: `https://api.upbit.com/v1/order?${queryEncode(params)}`,
+    headers: { Authorization: `Bearer ${userToken}` },
+  };
 
-    request(options, (error, response, body) => {
-      if (error) {
-        console.error(" error:", error);
-        resolve({
-          success: false,
-          message: error.message,
-        });
-      }
-      try {
-        const data = JSON.parse(body);
-        resolve(data);
-      } catch (e) {
-        console.error(" error:", e);
-        resolve({
-          success: false,
-          message: e.message,
-        });
-      }
-    });
-  });
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
 };
-
-function formatTimestamp() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    return `[${year}-${month}-${day} ${hours}:${minutes}:${seconds}]`;
-}

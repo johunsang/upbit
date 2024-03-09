@@ -2,11 +2,11 @@ const request = require("request");
 const uuidv4 = require("uuid/v4");
 const sign = require("jsonwebtoken").sign;
 const crypto = require("crypto");
-const { login } = require("./auth");
+// const { login } = require("./auth");
 const queryEncode = require("querystring").encode;
 
-exports.login = (id, password) => {
-  return new Promise((resolve, reject) => {
+login = async (id, password) => {
+  return new Promise(async (resolve, reject) => {
     const body = {
       vendorId: id,
       password: password,
@@ -14,11 +14,13 @@ exports.login = (id, password) => {
 
     const options = {
       method: "POST",
-      url: "https://admin.coudae.kr/chrome/login",
-      json: body,
+      url: "https://admin.coudae.co.kr/chrome/login",
+      json: true, // Automatically stringifies the body to JSON
+      body: body,
     };
 
-    request(options, (error, response, body) => {
+    request(options, (error, repsonse, body) => {
+      console.log(body);
       if (error) {
         console.log("error", error);
         console.error(error);
@@ -27,7 +29,6 @@ exports.login = (id, password) => {
           message: error.message,
         });
       } else {
-        console.log(body);
         resolve({
           success: true,
           message: "success",
@@ -36,6 +37,8 @@ exports.login = (id, password) => {
       }
     });
   });
+
+  
 };
 
-login("A00878694", "a1234567").then((result) => console.log(result));
+login("A00878694", "a1234567").then((result) => console.log(result.success));

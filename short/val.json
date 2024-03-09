@@ -1,0 +1,19 @@
+{
+  "invest": 10000,
+  "margin": 0.05,
+  "stopLoss": -1,
+  "isTargetInclude24Price": true,
+  "isTargetInclude24Volume": true,
+  "isTargetIncludeChkClosingPrice": true,
+  "targetMarketMaxSize": 100,
+  "targetShort": 3,
+  "targetShortValue": 0.1,
+  "targetMid": 15,
+  "targetMidValue": 0.1,
+  "targetLong": 60,
+  "targetLongValue": 0.3,
+  "maType": "EWMA",
+  "sellLoopMaxCount": 3000,
+  "sellLoopIntervalSec": 5,
+  "surgingCoinsDepth": 5
+}

@@ -1,5 +1,8 @@
 const UPBIT_SERVICE = require("../service/upbit");
+const AUTH_SERVICE = require("../service/auth");
 const fs = require("fs");
+
+let USER = "";
 
 const openConfig = async () => {
   return new Promise((resolve, reject) => {
@@ -15,15 +18,14 @@ const openConfig = async () => {
   });
 };
 
-const makeDocu = async (qry) => {
+const makeDocu = async (qry, append = false, fileName) => {
   // 파일 이름을 정의합니다.
-  const fileName = "./candles_data.txt";
+  // const fileName = "./candles_data.txt";
   // qry 객체를 문자열로 변환합니다.
   const dataString = JSON.stringify(qry) + "\n"; // 각 qry를 새로운 줄에 추가합니다.
 
-  // fs.appendFile 함수를 사용하여 파일에 데이터를 비동기적으로 추가합니다.
-  // 파일이 없으면 새로 생성하고, 있으면 내용을 끝에 추가합니다.
-  fs.appendFile(fileName, dataString, "utf8", (err) => {
+  const fsMethod = append ? fs.appendFile : fs.writeFile;
+  fsMethod(fileName, dataString, "utf8", (err) => {
     if (err) {
       console.error("파일 저장 중 오류 발생:", err);
     } else {
@@ -33,20 +35,31 @@ const makeDocu = async (qry) => {
 };
 
 const main = async () => {
-  const USER = await openConfig();
+  USER = await openConfig();
+
+  // makeDocu(USER.coinName + "의 분, 일, 주, 월 별로 각각 캔들 데이터입니다. 각 데이터는 시가 고가 종가 저가 누적금액 거래량이 있으며 최근 200개의 캔들을 가져 옵니다. 분의 경우 1,3,5,10,15,30,60,240분 별로 200개씩 가져 옵니다.", false);
+
+  const login = await AUTH_SERVICE.login(USER.id, USER.password);
+  if (!login.success) {
+    console.log("로그인 실패");
+    return;
+  } else {
+    console.log("로그인 성공");
+  }
   const token = await UPBIT_SERVICE.getToken(USER.access_key, USER.secret_key);
-  makeMinutes(token);
-  makeDays(token);
-  makeWeeks(token);
-  makeMonths(token);
+  // console.log(token);
+  await makeMinutes(token);
+  await makeDays(token);
+  await makeWeeks(token);
+  await makeMonths(token);
 };
 
 const makeDays = async (token) => {
   return new Promise(async (resolve, reject) => {
-    const marketParams = USER.coinCode + "-KRW";
+    const marketParams = "KRW-" + USER.coinCode;
     const candles = await UPBIT_SERVICE.getCandlesDay(marketParams, token);
 
-    await makeDocu("여기서 부터는 가장 최근 일별 봉 데이터입니다.");
+    await makeDocu("", false, "일별캔들.txt");
 
     for (let j = 0; j < candles.data.length; j++) {
       const candle = candles.data[j];
@@ -64,20 +77,19 @@ const makeDays = async (token) => {
         "캔들시각 UTC": candle.candle_date_time_utc,
         "캔들시각 KST": candle.candle_date_time_kst,
       };
-      await makeDocu(qry);
-      console.log(qry);
+      await makeDocu(qry, true, "일별캔들.txt");
       await delay(100);
     }
-    reso
+   resolve();
   });
 };
 
 const makeWeeks = async (token) => {
   return new Promise(async (resolve, reject) => {
-    const marketParams = USER.coinCode + "-KRW";
+    const marketParams = "KRW-" + USER.coinCode;
     const candles = await UPBIT_SERVICE.getCandlesWeek(marketParams, token);
 
-    await makeDocu("여기서 부터는 가장 최근 주별 봉 데이터입니다.");
+    await makeDocu("", false, "주별캔들.txt");
 
     for (let j = 0; j < candles.data.length; j++) {
       const candle = candles.data[j];
@@ -95,19 +107,21 @@ const makeWeeks = async (token) => {
         "캔들시각 UTC": candle.candle_date_time_utc,
         "캔들시각 KST": candle.candle_date_time_kst,
       };
-      await makeDocu(qry);
-      console.log(qry);
+      await makeDocu(qry, true, "주별캔들.txt");
       await delay(100);
     }
+
+   resolve();
+
   });
 };
 
 const makeMonths = async (token) => {
   return new Promise(async (resolve, reject) => {
-    const marketParams = USER.coinCode + "-KRW";
+    const marketParams = "KRW-" + USER.coinCode;
     const candles = await UPBIT_SERVICE.getCandlesMonth(marketParams, token);
 
-    await makeDocu("여기서 부터는 가장 최근 월별 봉 데이터입니다.");
+    await makeDocu("", false, "월별캔들.txt");
 
     for (let j = 0; j < candles.data.length; j++) {
       const candle = candles.data[j];
@@ -125,28 +139,34 @@ const makeMonths = async (token) => {
         "캔들시각 UTC": candle.candle_date_time_utc,
         "캔들시각 KST": candle.candle_date_time_kst,
       };
-      await makeDocu(qry);
-      console.log(qry);
+      await makeDocu(qry, true, "월별캔들.txt");
       await delay(100);
     }
+   resolve();
+
   });
 };
 
 const makeMinutes = async (token) => {
   return new Promise(async (resolve, reject) => {
     const min = [1, 3, 5, 10, 15, 30, 60, 240];
+    await makeDocu(
+      "",
+      false,
+      "분별캔들.txt"
+    );
 
     for (let i = 0; i < min.length; i++) {
-      const marketParams = USER.coinCode + "-KRW";
+      const marketParams = "KRW-" + USER.coinCode;
       const candles = await UPBIT_SERVICE.getCandlesMin(marketParams, token, min[i]);
 
-      await makeDocu("여기서 부터는 분봉 데이터입니다.");
+      // console.log(candles.data.length);
 
       for (let j = 0; j < candles.data.length; j++) {
         const candle = candles.data[j];
         const qry = {
           마켓: USER.coinName,
-          "분의 캔들": min[i],
+          "분": min[i],
           현재가: candle.trade_price,
           시가: candle.opening_price,
           고가: candle.high_price,
@@ -157,11 +177,12 @@ const makeMinutes = async (token) => {
           "캔들시각 UTC": candle.candle_date_time_utc,
           "캔들시각 KST": candle.candle_date_time_kst,
         };
-        await makeDocu(qry);
-        console.log(qry);
+        await makeDocu(qry, true, "분별캔들.txt");
         await delay(100);
       }
     }
+   resolve();
+
   });
 };
 
