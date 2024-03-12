@@ -73,7 +73,7 @@ exports.getMarketAll = async (token) => {
   }
 };
 
-exports.getCandles = async (market, token, type = "minutes", unit = 1, count = 200) => {
+exports.getCandles = async (market, token, type = "minutes", unit, count = 200) => {
   const options = {
     method: "GET",
     url: `https://api.upbit.com/v1/candles/${type}/${unit}?market=${market}&count=${count}`,
