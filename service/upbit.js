@@ -172,3 +172,18 @@ exports.getOrder = async (params, userToken) => {
     return handleError(error);
   }
 };
+
+exports.getAcountInfo = async (userToken) => {
+  const options = {
+    method: "GET",
+    url: `https://api.upbit.com/v1/accounts`,
+    headers: { Authorization: `Bearer ${userToken}` },
+  };
+
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
+};

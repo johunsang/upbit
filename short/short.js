@@ -348,6 +348,7 @@ async function tradeCoin(market, token) {
 
     const orderbook = await UPBIT_SERVICE.getOrderBook(market.market, token);
     const volume = USER.invest / orderbook.data[0].orderbook_units[0].ask_price;
+    console.log( orderbook.data[0].orderbook_units);
     const body = {
       market: market.market,
       side: "bid",

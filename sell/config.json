@@ -1,6 +1,14 @@
 {
   "id": "A00878694",
-  "password": "a1234567",
-  "access_key": "RYWZ1CTrU2ABVfJqoVqg0t8EsDpi8COqfCNq3hNh",
-  "secret_key": "d4t8LCxYNP9ZoynxKTZp1xKZSe92HkJEfn4Kh4zO"
+  "password": "a1234567!",
+  "access_key": "581zoHBYOjHdBqNrnCXjthvKEDqoG2Wx0rNxKsrk",
+  "secret_key": "EdmnZxxcc4k9doO01NaPVI9x6ElRF1GI2tJ14LJd",
+  "sell_mode": "percent",
+  "margin_percent": 5,
+  "margin_volume_percent": 100,
+  "stopLoss_percent": -5,
+  "stopLoss_volume_percent": 100,
+  "exclude_markets": "",
+  "isLoveMyMarkets": false,
+  "myLovelyMarkets": ""
 }
