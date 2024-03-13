@@ -25,13 +25,13 @@ async function init() {
   await loadConfig();
   // console.log(`[${getTimestamp()}] 설정 파일을 읽었습니다.`, USER);
 
-  const login = await AUTH_SERVICE.login(USER.id, USER.password);
-  if (!login.success) {
-    console.log("로그인 실패");
-    return;
-  }
+  // const login = await AUTH_SERVICE.login(USER.id, USER.password);
+  // if (!login.success) {
+  //   console.log("로그인 실패");
+  //   return;
+  // }
 
-  console.log(`[${getTimestamp()}] 로그인 성공`);
+  // console.log(`[${getTimestamp()}] 로그인 성공`);
 
   const mode = USER.test_mode ? "테스트 모드" : "실제 거래 모드";
   const buyMode = USER.only_buy ? "구매만 하는 모드" : "구매 및 판매 모드";
