@@ -2,10 +2,10 @@ const UPBIT_SERVICE = require("../service/upbit");
 const AUTH_SERVICE = require("../service/auth");
 const ti = require('technicalindicators');
 const fs = require("fs");
-const readline = require("readline").createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+// const readline = require("readline").createInterface({
+//   input: process.stdin,
+//   output: process.stdout,
+// });
 
 let isRunning = false;
 let USER = {};
