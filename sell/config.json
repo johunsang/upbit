@@ -3,7 +3,6 @@
   "password": "a1234567!",
   "access_key": "581zoHBYOjHdBqNrnCXjthvKEDqoG2Wx0rNxKsrk",
   "secret_key": "EdmnZxxcc4k9doO01NaPVI9x6ElRF1GI2tJ14LJd",
-  "sell_mode": "percent",
   "margin_percent": 5,
   "margin_volume_percent": 100,
   "stopLoss_percent": -5,
