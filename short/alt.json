@@ -26,7 +26,7 @@
   "targetMidValue": 0,
   "targetLongValue":0,
   "useBollinger": true,
-  "bollingerPeriod": 2,
+  "bollingerPeriod": 5,
   "bollingerStdDev": 3,
   "usePSAR": true,
   "psarStep": 0.04,
