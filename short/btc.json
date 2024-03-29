@@ -16,7 +16,7 @@
   "isTargetBitcoinIsRising": false,
   "targetMarketMaxSize": 150,
   "candleUnit": 5,
-  "useTrendingMA": true,
+  "useTrendingMA": false,
   "maType": "SMA",
   "targetShort": 5,
   "targetMid": 10,
