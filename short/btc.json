@@ -21,7 +21,7 @@
   "targetShort": 5,
   "targetMid": 10,
   "targetLong": 30,
-  "useMinimumIncreases": true,
+  "useMinimumIncreases": false,
   "targetShortValue": 0,
   "targetMidValue": 0,
   "targetLongValue":0,
