@@ -26,15 +26,14 @@
   "targetMidValue": 0,
   "targetLongValue":0,
   "useBollinger": true,
-  "bollingerPeriod": 2,
+  "bollingerPeriod": 5,
   "bollingerStdDev": 3,
   "usePSAR": true,
   "psarStep": 0.04,
   "psarMaxStep": 0.2,
   "sellLoopMaxCount": 1000,
   "sellLoopIntervalSec": 5,
-  "surgingCoinsDepth": 3,
-  "isLoveMyMarkets": false,
+  "isLoveMyMarkets": true,
   "myLovelyMarkets": "BTC",
-  "isTrendingUpward": true
+  "isTrendingUpward": false
 }

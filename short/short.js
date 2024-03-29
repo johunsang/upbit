@@ -15,7 +15,18 @@ let surgingCoins = [];
 
 async function loadConfig() {
   try {
-    USER = JSON.parse(fs.readFileSync("./config.json", "utf8"));
+    const args = process.argv.slice(2);
+    let configPath = "./config.json";
+
+  
+    if(args[0]) {
+      configPath = "./" + args[0];
+    }
+
+    USER = JSON.parse(fs.readFileSync(configPath, "utf8"));
+
+    console.log(`[${getTimestamp()}] 설정 파일을 읽었습니다.`, USER);
+    
   } catch (e) {
     console.error(e);
   }
@@ -69,6 +80,36 @@ async function main() {
       console.log(`[${getTimestamp()}] 마켓 정보를 가져오지 못했습니다.`);
       throw new Error("마켓 정보를 가져오지 못했습니다.");
     }
+
+    if (USER.isTargetMarketsIsRising) {
+      const aboveClosingPriceCount = markets.filter((item) => item.trade_price > item.prev_closing_price).length;
+      const aboveClosingPriceRatio = aboveClosingPriceCount / markets.length;
+      if (aboveClosingPriceRatio < USER.isTargetMarketsIsRisingRatio) {
+        console.log(`[${getTimestamp()}] 전체 마켓의 ` +  USER.isTargetMarketsIsRisingRatio+  `% 미만의 코인만 현재가가 전일 종가보다 높으므로 프로그램을 종료합니다.`);
+         return;
+      }else{
+        console.log(`[${getTimestamp()}] 전체 마켓의 ` +  USER.isTargetMarketsIsRisingRatio+  `% 이상의 코인만 현재가가 전일 종가보다 높으므로 프로그램을 실행합니다.`);
+      }
+    }
+
+    if (USER.isTargetBitcoinIsRising) {
+      const bitcoinMarket = "KRW-BTC";
+      const bitcoinCandles = await UPBIT_SERVICE.getCandles(bitcoinMarket, token, "minutes", 1, 2);
+      if (bitcoinCandles.success && bitcoinCandles.data.length === 2) {
+        const currentPrice = bitcoinCandles.data[0].trade_price;
+        const prevPrice = bitcoinCandles.data[1].trade_price;
+        if (currentPrice <= prevPrice) {
+          console.log(`[${getTimestamp()}] 비트코인이 상승하지 않았으므로 프로그램을 종료합니다.`);
+          isRunning = false;
+          return;
+        }
+      } else {
+        console.log(`[${getTimestamp()}] 비트코인 캔들 정보를 가져오지 못했습니다. 프로그램을 종료합니다.`);
+        isRunning = false;
+        return;
+      }
+    }
+
     const marketsKRW = markets.filter((market) => market.market.indexOf("KRW") > -1);
     const marketParams = marketsKRW.map((market) => market.market).join(",");
 
