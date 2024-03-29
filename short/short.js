@@ -364,13 +364,14 @@ function calculateEMA(data, period, smoothing = 2) {
 
   let ema = calculateSMA(data, period);
 
+  const smoothingFactor = smoothing / (1 + period);
+
   for (let i = period; i < data.length; i++) {
-    ema = (data[i].trade_price - ema) * (smoothing / (1 + period)) + ema;
+    ema = (data[i].trade_price - ema) * smoothingFactor + ema;
   }
 
   return ema;
 }
-
 function calculateIncreases(candles, currentPrice) {
   return {
     shortIncrease: calculateIncrease(candles[USER.targetShort].trade_price, currentPrice),
