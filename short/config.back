@@ -17,7 +17,7 @@
   "targetMarketMaxSize": 150,
   "candleUnit": 5,
   "useTrendingMA": true,
-  "maType": "ECMA",
+  "maType": "SMA",
   "targetShort": 5,
   "targetMid": 10,
   "targetLong": 30,
@@ -26,14 +26,14 @@
   "targetMidValue": 0,
   "targetLongValue": 0,
   "useBollinger": true,
-  "bollingerPeriod": 5,
+  "bollingerPeriod": 20,
   "bollingerStdDev": 2,
   "usePSAR": true,
   "psarStep": 0.02,
   "psarMaxStep": 0.2,
   "sellLoopMaxCount": 1000,
   "sellLoopIntervalSec": 5,
-  "isLoveMyMarkets": true,
+  "isLoveMyMarkets": false,
   "myLovelyMarkets": "BTC",
-  "isTrendingUpward": false
+  "isTrendingUpward": true
 }
