@@ -80,39 +80,54 @@ async function main() {
       console.log(`[${getTimestamp()}] 마켓 정보를 가져오지 못했습니다.`);
       throw new Error("마켓 정보를 가져오지 못했습니다.");
     }
+    const marketsKRW = markets.filter((market) => market.market.indexOf("KRW") > -1);
+    const marketParams = marketsKRW.map((market) => market.market).join(",");
 
     if (USER.isTargetMarketsIsRising) {
-      const aboveClosingPriceCount = markets.filter((item) => item.trade_price > item.prev_closing_price).length;
-      const aboveClosingPriceRatio = aboveClosingPriceCount / markets.length;
+      const tickerResult = await UPBIT_SERVICE.getTicker(marketParams, token);
+      if (!tickerResult.success) {
+        console.log(`[${getTimestamp()}] 티커 정보를 가져오지 못했습니다.`);
+        throw new Error("티커 정보를 가져오지 못했습니다.");
+      }
+    
+      const tickers = tickerResult.data;
+      const aboveClosingPriceCount = tickers.filter((ticker) => ticker.trade_price > ticker.prev_closing_price).length;
+      console.log(`[${getTimestamp()}] 전체 마켓 중 ${aboveClosingPriceCount}개가 상승했습니다.`);
+      const aboveClosingPriceRatio = (aboveClosingPriceCount / tickers.length) * 100; // 비율을 퍼센트로 계산
+      console.log(`[${getTimestamp()}] 전체 마켓 중 ${aboveClosingPriceRatio.toFixed(2)}%가 상승했습니다.`);
+      
       if (aboveClosingPriceRatio < USER.isTargetMarketsIsRisingRatio) {
-        console.log(`[${getTimestamp()}] 전체 마켓의 ` +  USER.isTargetMarketsIsRisingRatio+  `% 미만의 코인만 현재가가 전일 종가보다 높으므로 프로그램을 종료합니다.`);
-         return;
-      }else{
-        console.log(`[${getTimestamp()}] 전체 마켓의 ` +  USER.isTargetMarketsIsRisingRatio+  `% 이상의 코인만 현재가가 전일 종가보다 높으므로 프로그램을 실행합니다.`);
+        console.log(`[${getTimestamp()}] 전체 마켓 중 ${aboveClosingPriceRatio.toFixed(2)}%만 상승했습니다. 프로그램을 종료합니다.`);
+        return;
+      } else {
+        console.log(`[${getTimestamp()}] 전체 마켓 중 ${aboveClosingPriceRatio.toFixed(2)}%가 상승했습니다.`);
       }
     }
 
     if (USER.isTargetBitcoinIsRising) {
       const bitcoinMarket = "KRW-BTC";
-      const bitcoinCandles = await UPBIT_SERVICE.getCandles(bitcoinMarket, token, "minutes", 1, 2);
-      if (bitcoinCandles.success && bitcoinCandles.data.length === 2) {
-        const currentPrice = bitcoinCandles.data[0].trade_price;
-        const prevPrice = bitcoinCandles.data[1].trade_price;
-        if (currentPrice <= prevPrice) {
-          console.log(`[${getTimestamp()}] 비트코인이 상승하지 않았으므로 프로그램을 종료합니다.`);
+      const bitcoinTicker = await UPBIT_SERVICE.getTicker(bitcoinMarket, token);
+    
+      if (bitcoinTicker.success && bitcoinTicker.data.length === 1) {
+        const currentPrice = bitcoinTicker.data[0].trade_price;
+        const prevPrice = bitcoinTicker.data[0].prev_closing_price;
+        const priceChangeRate = bitcoinTicker.data[0].signed_change_rate;
+    
+        console.log(`[${getTimestamp()}] 비트코인 현재가: ${currentPrice.toLocaleString()}, 24시간 전 가격: ${prevPrice.toLocaleString()}, 변화율: ${(priceChangeRate * 100).toFixed(2)}%`);
+    
+        if (priceChangeRate <= 0) {
+          console.log(`[${getTimestamp()}] 비트코인이 24시간 전 대비 상승하지 않았으므로 프로그램을 종료합니다.`);
           isRunning = false;
           return;
         }
       } else {
-        console.log(`[${getTimestamp()}] 비트코인 캔들 정보를 가져오지 못했습니다. 프로그램을 종료합니다.`);
+        console.log(`[${getTimestamp()}] 비트코인 티커 정보를 가져오지 못했습니다. 프로그램을 종료합니다.`);
         isRunning = false;
         return;
       }
     }
 
-    const marketsKRW = markets.filter((market) => market.market.indexOf("KRW") > -1);
-    const marketParams = marketsKRW.map((market) => market.market).join(",");
-
+   
     let myLovelyMarketsKRW = [];
     let targetMarketsKRW = [];
 
