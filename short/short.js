@@ -359,15 +359,15 @@ function calculateSMA(data, period) {
   return sum / period;
 }
 
-function calculateEMA(data, period, smoothing = 2) {
+function calculateEMA(data, period, smoothingFactor = 2) {
   if (data.length < period) return null;
 
   let ema = calculateSMA(data, period);
 
-  const smoothingFactor = smoothing / (1 + period);
+  const multiplier = smoothingFactor / (period + 1);
 
   for (let i = period; i < data.length; i++) {
-    ema = (data[i].trade_price - ema) * smoothingFactor + ema;
+    ema = (data[i].trade_price * multiplier) + (ema * (1 - multiplier));
   }
 
   return ema;
