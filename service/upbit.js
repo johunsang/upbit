@@ -103,6 +103,35 @@ exports.getCandlesDay = async (market, token) => {
   }
 };
 
+exports.getCandlesWeek = async (market, token) => {
+  const options = {
+    method: "GET",
+    url: `https://api.upbit.com/v1/candles/weeks?market=${market}&count=200`,
+    headers: { Authorization: `Bearer ${token}` },
+  };
+
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
+};
+
+exports.getCandlesMonth = async (market, token) => {
+  const options = {
+    method: "GET",
+    url: `https://api.upbit.com/v1/candles/months?market=${market}&count=200`,
+    headers
+    : { Authorization: `Bearer ${token}` },
+  };
+  try {
+    const response = await createRequestPromise(options);
+    return response;
+  } catch (error) {
+    return handleError(error);
+  }
+};
 exports.getTicker = async (markets, token) => {
   const options = {
     method: "GET",

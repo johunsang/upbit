@@ -31,7 +31,7 @@
   "sellLoopMaxCount": 1000,
   "sellLoopIntervalSec": 5,
   "surgingCoinsDepth": 3,
-  "isLoveMyMarkets": false,
+  "isLoveMyMarkets": true,
   "myLovelyMarkets": "BTC",
   "isTrendingUpward": true
 }

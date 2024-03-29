@@ -1,6 +1,7 @@
 const UPBIT_SERVICE = require("../service/upbit");
 const AUTH_SERVICE = require("../service/auth");
 const fs = require("fs");
+const { type } = require("os");
 
 let USER = "";
 
@@ -59,13 +60,13 @@ const makeDays = async (token) => {
     const marketParams = "KRW-" + USER.coinCode;
     const candles = await UPBIT_SERVICE.getCandlesDay(marketParams, token);
 
-    await makeDocu("", false, "일별캔들.txt");
+    await makeDocu("일별캔들 데이터입니다.", false, "일별캔들.txt");
 
     for (let j = 0; j < candles.data.length; j++) {
       const candle = candles.data[j];
       const qry = {
         마켓: USER.coinName,
-        중류: "일별",
+        종류: "일별",
         현재가: candle.trade_price,
         시가: candle.opening_price,
         고가: candle.high_price,
@@ -89,13 +90,13 @@ const makeWeeks = async (token) => {
     const marketParams = "KRW-" + USER.coinCode;
     const candles = await UPBIT_SERVICE.getCandlesWeek(marketParams, token);
 
-    await makeDocu("", false, "주별캔들.txt");
+    await makeDocu("주별캔들데이터입니다", false, "주별캔들.txt");
 
     for (let j = 0; j < candles.data.length; j++) {
       const candle = candles.data[j];
       const qry = {
         마켓: USER.coinName,
-        중류: "주별 WEEK",
+        종류: "주별 WEEK",
         현재가: candle.trade_price,
         시가: candle.opening_price,
         고가: candle.high_price,
@@ -121,13 +122,13 @@ const makeMonths = async (token) => {
     const marketParams = "KRW-" + USER.coinCode;
     const candles = await UPBIT_SERVICE.getCandlesMonth(marketParams, token);
 
-    await makeDocu("", false, "월별캔들.txt");
+    await makeDocu("월별캔들데이터입니다", false, "월별캔들.txt");
 
     for (let j = 0; j < candles.data.length; j++) {
       const candle = candles.data[j];
       const qry = {
         마켓: USER.coinName,
-        중류: "월별 MONTH",
+        종류: "월별 MONTH",
         현재가: candle.trade_price,
         시가: candle.opening_price,
         고가: candle.high_price,
@@ -158,12 +159,12 @@ const makeMinutes = async (token) => {
 
     for (let i = 0; i < min.length; i++) {
       const marketParams = "KRW-" + USER.coinCode;
-      const candles = await UPBIT_SERVICE.getCandlesMin(marketParams, token, min[i]);
+      const candles = (await UPBIT_SERVICE.getCandles(marketParams, token, "minutes", min[i])).data;
 
-      // console.log(candles.data.length);
+    //  console.log(candles);
 
-      for (let j = 0; j < candles.data.length; j++) {
-        const candle = candles.data[j];
+      for (let j = 0; j < candles.length; j++) {
+        const candle = candles[j];
         const qry = {
           마켓: USER.coinName,
           "분": min[i],
