@@ -3,11 +3,11 @@
   "password": "값입력필요",
   "access_key": "값입력필요",
   "secret_key": "값입력필요",
-  "margin_percent": 5,
+  "margin_percent": 3,
   "margin_volume_percent": 100,
   "stopLoss_percent": -5,
   "stopLoss_volume_percent": 100,
-  "exclude_markets": "",
+  "exclude_markets": "BTC",
   "isLoveMyMarkets": false,
   "myLovelyMarkets": ""
 }
