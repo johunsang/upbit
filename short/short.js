@@ -325,7 +325,8 @@ async function checkSurge(market, candles) {
     isBullishTrend = isAboveMiddleBand && isBandWidthExpanding;
 
     // 하락 추세 판단
-    isBearishTrend = isBelowMiddleBand && isBandWidthContracting;
+    // isBearishTrend = isBelowMiddleBand && isBandWidthContracting;
+    isBearishTrend = isBelowMiddleBand;
   }
 
   if (USER.usePSAR) {
@@ -339,7 +340,7 @@ async function checkSurge(market, candles) {
     };
 
     const psarResult = ti.PSAR.calculate(psarInput);
-    psar = psarResult[0];
+    psar = psarResult[1];
     isPsarBullish = psar < currentPrice;
     isPsarBearish = psar > currentPrice;
   }
@@ -427,7 +428,7 @@ async function checkSurge(market, candles) {
 function calculateMovingAverages(candles) {
   const ma = {};
 
-  if (USER.maType === "SMA") {
+  if (USER.maType === "SMA" || USER.maType === "CMA") {
     ma.shortMA = calculateSMA(candles, USER.targetShort);
     ma.midMA = calculateSMA(candles, USER.targetMid);
     ma.longMA = calculateSMA(candles, USER.targetLong);
