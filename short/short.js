@@ -1,7 +1,8 @@
 const UPBIT_SERVICE = require("../service/upbit");
 const AUTH_SERVICE = require("../service/auth");
-const ti = require('technicalindicators');
+const ti = require("technicalindicators");
 const fs = require("fs");
+const { on } = require("process");
 // const readline = require("readline").createInterface({
 //   input: process.stdin,
 //   output: process.stdout,
@@ -12,21 +13,18 @@ let USER = {};
 let chkMode = "상승";
 let surgingCoins = [];
 
-
 async function loadConfig() {
   try {
     const args = process.argv.slice(2);
     let configPath = "./config.json";
 
-  
-    if(args[0]) {
+    if (args[0]) {
       configPath = "./" + args[0];
     }
 
     USER = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
-    // console.log(`[${getTimestamp()}] 설정 파일을 읽었습니다.`, USER);
-    
+    console.log(`[${getTimestamp()}] 설정 파일을 읽었습니다.`, USER);
   } catch (e) {
     console.error(e);
   }
@@ -46,12 +44,24 @@ async function init() {
 
   const mode = USER.test_mode ? "테스트 모드" : "실제 거래 모드";
   const buyMode = USER.only_buy ? "구매만 하는 모드" : "구매 및 판매 모드";
+  const isLoveMyMarkets = USER.isLoveMyMarkets ? "응.. 내가 좋아하는 코인만" : "아니오.전체 코인";
+  const isProfitAgoMarkets = USER.isProfitAgoMarkets ? "응.. 이전 수익 코인만" : "아니오. 전체 코인";
   const isTrendingUpward = USER.isTrendingUpward ? "상승 추세" : "하락 추세";
 
   chkMode = USER.isTrendingUpward ? "상승" : "하락";
 
-  console.log(`[${getTimestamp()}] 현재 모드: ${mode}, ${buyMode}, ${isTrendingUpward}`);
+  console.log(
+    `[${getTimestamp()}] 현재 모드: ${mode}, 구매모드 : ${buyMode}, 추세는? ${isTrendingUpward}, 특정코인만 ? ${isLoveMyMarkets}, 특정시점이점코인만? ${isProfitAgoMarkets}`
+  );
 
+  if (USER.isProfitAgoMarkets && USER.isLoveMyMarkets) {
+    console.log("내가 좋아하는 코인만, 수익 코인만 둘 다 설정할 수 없습니다. 하나만 설정해주세요.");
+    return;
+  }
+  if (USER.isProfitAgoMarkets && !USER.isTrendingUpward) {
+    console.log("이전 수익 코인만 설정하면 추세는 상승으로 설정해야 합니다.");
+    return;
+  }
   // const answer = await question(`현재 모드는 ${mode}, ${buyMode}, ${isTrendingUpward} 입니다. 계속하시겠습니까? (Y/N) `);
 
   // if (answer.toUpperCase() !== "Y") {
@@ -89,13 +99,13 @@ async function main() {
         console.log(`[${getTimestamp()}] 티커 정보를 가져오지 못했습니다.`);
         throw new Error("티커 정보를 가져오지 못했습니다.");
       }
-    
+
       const tickers = tickerResult.data;
       const aboveClosingPriceCount = tickers.filter((ticker) => ticker.trade_price > ticker.prev_closing_price).length;
       console.log(`[${getTimestamp()}] 전체 마켓 중 ${aboveClosingPriceCount}개가 상승했습니다.`);
       const aboveClosingPriceRatio = (aboveClosingPriceCount / tickers.length) * 100; // 비율을 퍼센트로 계산
       console.log(`[${getTimestamp()}] 전체 마켓 중 ${aboveClosingPriceRatio.toFixed(2)}%가 상승했습니다.`);
-      
+
       if (aboveClosingPriceRatio < USER.isTargetMarketsIsRisingRatio) {
         console.log(`[${getTimestamp()}] 전체 마켓 중 ${aboveClosingPriceRatio.toFixed(2)}%만 상승했습니다. 프로그램을 종료합니다.`);
         return;
@@ -107,14 +117,18 @@ async function main() {
     if (USER.isTargetBitcoinIsRising) {
       const bitcoinMarket = "KRW-BTC";
       const bitcoinTicker = await UPBIT_SERVICE.getTicker(bitcoinMarket, token);
-    
+
       if (bitcoinTicker.success && bitcoinTicker.data.length === 1) {
         const currentPrice = bitcoinTicker.data[0].trade_price;
         const prevPrice = bitcoinTicker.data[0].prev_closing_price;
         const priceChangeRate = bitcoinTicker.data[0].signed_change_rate;
-    
-        console.log(`[${getTimestamp()}] 비트코인 현재가: ${currentPrice.toLocaleString()}, 24시간 전 가격: ${prevPrice.toLocaleString()}, 변화율: ${(priceChangeRate * 100).toFixed(2)}%`);
-    
+
+        console.log(
+          `[${getTimestamp()}] 비트코인 현재가: ${currentPrice.toLocaleString()}, 24시간 전 가격: ${prevPrice.toLocaleString()}, 변화율: ${(
+            priceChangeRate * 100
+          ).toFixed(2)}%`
+        );
+
         if (priceChangeRate <= 0) {
           console.log(`[${getTimestamp()}] 비트코인이 24시간 전 대비 상승하지 않았으므로 프로그램을 종료합니다.`);
           isRunning = false;
@@ -127,7 +141,6 @@ async function main() {
       }
     }
 
-   
     let myLovelyMarketsKRW = [];
     let targetMarketsKRW = [];
 
@@ -142,6 +155,49 @@ async function main() {
         console.log(targetMarketsKRW);
         console.log(`[${getTimestamp()}] 내가 좋아하는 마켓 이름: ${targetMarketsKRW.map((item) => item.korean_name).join(", ")}`);
       }
+    } else if (USER.isProfitAgoMarkets) {
+      // const marketParams = marketsKRW.map((market) => market.market).join(",");
+      const candlesPromises = marketsKRW.map((market) => UPBIT_SERVICE.getCandles(market.market, token, "minutes", 1));
+      const candlesResults = await Promise.all(candlesPromises);
+
+      const profitableMarkets = candlesResults
+        .map((result, index) => {
+          if (result.success && result.data.length > USER.profitAgoMarketsLength) {
+            const currentPrice = result.data[0].trade_price;
+            const prevPrice = result.data[USER.profitAgoMarketsMin].trade_price;
+            const increase = ((currentPrice - prevPrice) / prevPrice) * 100;
+            return { market: marketsKRW[index], increase };
+          }
+          return null;
+        })
+        .filter((item) => item !== null);
+
+      const topProfitableMarkets = profitableMarkets
+        .sort((a, b) => b.increase - a.increase)
+        .slice(0, USER.profitAgoMarketsLength)
+        .map((item) => item.market);
+
+      await delay(1000);
+      var lanking = 1;
+
+      for (const market of topProfitableMarkets) {
+        await delay(1000);
+        const candleData = await UPBIT_SERVICE.getCandles(market.market, token, "minutes", 1, USER.profitAgoMarketsMin + 1);
+
+        if (candleData.success) {
+          const currentPrice = candleData.data[0].trade_price;
+          const prevPrice = candleData.data[USER.profitAgoMarketsMin].trade_price;
+          const increase = ((currentPrice - prevPrice) / prevPrice) * 100;
+          console.log(
+            `[${getTimestamp()}] ${lanking}위 ${market.korean_name} - ${
+              USER.profitAgoMarketsMin
+            }분 전 가격: ${prevPrice.toLocaleString()}, 현재 가격: ${currentPrice.toLocaleString()}, 상승률: ${increase.toFixed(2)}%`
+          );
+          lanking = lanking + 1;
+        }
+      }
+
+      targetMarketsKRW = topProfitableMarkets;
     } else {
       const snapShot = await UPBIT_SERVICE.getTicker(marketParams, token);
       const targetMarkets = filterTargetMarkets(snapShot.data);
@@ -214,7 +270,6 @@ async function identifySurgingCoins(markets, token) {
   });
 }
 
-
 async function checkSurge(market, candles) {
   let currentPrice = 0;
   await delay(100);
@@ -242,14 +297,14 @@ async function checkSurge(market, candles) {
   let isBelowMiddleBand = false;
 
   if (USER.useBollinger) {
-    const closes = candles.map(candle => candle.trade_price);
-  
+    const closes = candles.map((candle) => candle.trade_price);
+
     const bollingerInput = {
       period: USER.bollingerPeriod,
       stdDev: USER.bollingerStdDev,
-      values: closes
+      values: closes,
     };
-    
+
     const bbResult = ti.BollingerBands.calculate(bollingerInput);
     const currentBB = bbResult[0];
     const prevBB = bbResult[1];
@@ -257,10 +312,10 @@ async function checkSurge(market, candles) {
     upperBand = currentBB.upper;
     lowerBand = currentBB.lower;
     middleBand = currentBB.middle;
-    
+
     isAboveMiddleBand = currentPrice > middleBand;
     isBelowMiddleBand = currentPrice < middleBand;
-    
+
     const currentBandWidth = upperBand - lowerBand;
     const prevBandWidth = prevBB.upper - prevBB.lower;
     isBandWidthExpanding = currentBandWidth > prevBandWidth;
@@ -273,25 +328,28 @@ async function checkSurge(market, candles) {
     isBearishTrend = isBelowMiddleBand && isBandWidthContracting;
   }
 
-
   if (USER.usePSAR) {
-    const high = candles.map(candle => candle.high_price);
-    const low = candles.map(candle => candle.low_price);
+    const high = candles.map((candle) => candle.high_price);
+    const low = candles.map((candle) => candle.low_price);
     const psarInput = {
       step: USER.psarStep,
       max: USER.psarMaxStep,
       high: high,
-      low: low
+      low: low,
     };
-  
+
     const psarResult = ti.PSAR.calculate(psarInput);
     psar = psarResult[0];
     isPsarBullish = psar < currentPrice;
     isPsarBearish = psar > currentPrice;
   }
 
-  const isAboveMinimumIncreases = !USER.useMinimumIncreases || (shortIncrease > USER.targetShortValue && midIncrease >= USER.targetMidValue && longIncrease >= USER.targetLongValue);
-  const isBelowMinimumDecreases = !USER.useMinimumIncreases || (shortIncrease < USER.targetShortValue && midIncrease <= USER.targetMidValue && longIncrease <= USER.targetLongValue);
+  const isAboveMinimumIncreases =
+    !USER.useMinimumIncreases ||
+    (shortIncrease > USER.targetShortValue && midIncrease >= USER.targetMidValue && longIncrease >= USER.targetLongValue);
+  const isBelowMinimumDecreases =
+    !USER.useMinimumIncreases ||
+    (shortIncrease < USER.targetShortValue && midIncrease <= USER.targetMidValue && longIncrease <= USER.targetLongValue);
 
   const isTrendingUpward = !USER.useTrendingMA || (movingAverages.shortMA > movingAverages.midMA && movingAverages.midMA > movingAverages.longMA);
   const isTrendingDownward = !USER.useTrendingMA || (movingAverages.shortMA < movingAverages.midMA && movingAverages.midMA < movingAverages.longMA);
@@ -304,7 +362,9 @@ async function checkSurge(market, candles) {
 
   console.log(`[${getTimestamp()}] ${market.korean_name} 볼린저밴드와 PSAR 정보:`);
   if (USER.useBollinger) {
-    console.log(`- 현재가: ${currentPrice.toFixed(2)}, 볼린저밴드 상단: ${upperBand.toFixed(2)}, 하단: ${lowerBand.toFixed(2)}, 중간: ${middleBand.toFixed(2)}`);
+    console.log(
+      `- 현재가: ${currentPrice.toFixed(2)}, 볼린저밴드 상단: ${upperBand.toFixed(2)}, 하단: ${lowerBand.toFixed(2)}, 중간: ${middleBand.toFixed(2)}`
+    );
     console.log(`- 볼린저밴드 상승(매수시그널): ${isBullishTrend}, 하락(매도시그널): ${isBearishTrend}`);
     console.log(`- 볼린저밴드 폭 확대: ${isBandWidthExpanding}, 축소: ${isBandWidthContracting}`);
   }
@@ -314,56 +374,55 @@ async function checkSurge(market, candles) {
   }
 
   if (USER.isTrendingUpward) {
-  const conditions = [];
-  if (USER.useMinimumIncreases && isAboveMinimumIncreases) conditions.push("최소 상승률 만족");
-  if (USER.useTrendingMA && isTrendingUpward) conditions.push("이동평균선 상승 추세");
-  if (USER.useBollinger && isBullishTrend) conditions.push("볼린저밴드 상승 추세");
-  if (USER.usePSAR && isPsarBullish) conditions.push("PSAR 상향");
+    const conditions = [];
+    if (USER.useMinimumIncreases && isAboveMinimumIncreases) conditions.push("최소 상승률 만족");
+    if (USER.useTrendingMA && isTrendingUpward) conditions.push("이동평균선 상승 추세");
+    if (USER.useBollinger && isBullishTrend) conditions.push("볼린저밴드 상승 추세");
+    if (USER.usePSAR && isPsarBullish) conditions.push("PSAR 상향");
 
-  const usedConditions = [USER.useMinimumIncreases, USER.useTrendingMA, USER.useBollinger, USER.usePSAR];
-  const satisfiedConditions = [isAboveMinimumIncreases, isTrendingUpward, isBullishTrend, isPsarBullish];
+    const usedConditions = [USER.useMinimumIncreases, USER.useTrendingMA, USER.useBollinger, USER.usePSAR];
+    const satisfiedConditions = [isAboveMinimumIncreases, isTrendingUpward, isBullishTrend, isPsarBullish];
 
-  if (usedConditions.every((cond, idx) => !cond || satisfiedConditions[idx])) {
-    console.log(`[${getTimestamp()}] ${market.korean_name}은(는) 상승 코인으로 판단됩니다.`);
-    console.log(`- 이유: ${conditions.join(", ")}`);
-    return true;
+    if (usedConditions.every((cond, idx) => !cond || satisfiedConditions[idx])) {
+      console.log(`[${getTimestamp()}] ${market.korean_name}은(는) 상승 코인으로 판단됩니다.`);
+      console.log(`- 이유: ${conditions.join(", ")}`);
+      return true;
+    } else {
+      console.log(`[${getTimestamp()}] ${market.korean_name}은(는) ${chkMode} 코인이 아닙니다.`);
+      const reasons = [];
+      if (USER.useMinimumIncreases && !isAboveMinimumIncreases) reasons.push("최소 상승률 미만");
+      if (USER.useTrendingMA && !isTrendingUpward) reasons.push("이동평균선 상승 추세가 아님");
+      if (USER.useBollinger && !isBullishTrend) reasons.push("볼린저밴드 상승 추세가 아님");
+      if (USER.usePSAR && !isPsarBullish) reasons.push("PSAR 상향이 아님");
+      console.log(`- 이유: ${reasons.join(", ")}`);
+      return false;
+    }
   } else {
-    console.log(`[${getTimestamp()}] ${market.korean_name}은(는) ${chkMode} 코인이 아닙니다.`);
-    const reasons = [];
-    if (USER.useMinimumIncreases && !isAboveMinimumIncreases) reasons.push("최소 상승률 미만");
-    if (USER.useTrendingMA && !isTrendingUpward) reasons.push("이동평균선 상승 추세가 아님");
-    if (USER.useBollinger && !isBullishTrend) reasons.push("볼린저밴드 상승 추세가 아님");
-    if (USER.usePSAR && !isPsarBullish) reasons.push("PSAR 상향이 아님");
-    console.log(`- 이유: ${reasons.join(", ")}`);
-    return false;
-  }
-} else {
-  const conditions = [];
-  if (USER.useMinimumIncreases && isBelowMinimumDecreases) conditions.push("최소 하락률 만족");
-  if (USER.useTrendingMA && isTrendingDownward) conditions.push("이동평균선 하락 추세");
-  if (USER.useBollinger && isBearishTrend) conditions.push("볼린저밴드 하락 추세");
-  if (USER.usePSAR && isPsarBearish) conditions.push("PSAR 하향");
+    const conditions = [];
+    if (USER.useMinimumIncreases && isBelowMinimumDecreases) conditions.push("최소 하락률 만족");
+    if (USER.useTrendingMA && isTrendingDownward) conditions.push("이동평균선 하락 추세");
+    if (USER.useBollinger && isBearishTrend) conditions.push("볼린저밴드 하락 추세");
+    if (USER.usePSAR && isPsarBearish) conditions.push("PSAR 하향");
 
-  const usedConditions = [USER.useMinimumIncreases, USER.useTrendingMA, USER.useBollinger, USER.usePSAR];
-  const satisfiedConditions = [isBelowMinimumDecreases, isTrendingDownward, isBearishTrend, isPsarBearish];
+    const usedConditions = [USER.useMinimumIncreases, USER.useTrendingMA, USER.useBollinger, USER.usePSAR];
+    const satisfiedConditions = [isBelowMinimumDecreases, isTrendingDownward, isBearishTrend, isPsarBearish];
 
-  if (usedConditions.every((cond, idx) => !cond || satisfiedConditions[idx])) {
-    console.log(`[${getTimestamp()}] ${market.korean_name}은(는) 하락 코인으로 판단됩니다.`);
-    console.log(`- 이유: ${conditions.join(", ")}`);
-    return true;
-  } else {
-    console.log(`[${getTimestamp()}] ${market.korean_name}은(는) 하락 코인이 아닙니다.`);
-    const reasons = [];
-    if (USER.useMinimumIncreases && !isBelowMinimumDecreases) reasons.push("최소 하락률 미만");
-    if (USER.useTrendingMA && !isTrendingDownward) reasons.push("이동평균선 하락 추세가 아님");
-    if (USER.useBollinger && !isBearishTrend) reasons.push("볼린저밴드 하락 추세가 아님");
-    if (USER.usePSAR && !isPsarBearish) reasons.push("PSAR 하향이 아님");
-    console.log(`- 이유: ${reasons.join(", ")}`);
-    return false;
+    if (usedConditions.every((cond, idx) => !cond || satisfiedConditions[idx])) {
+      console.log(`[${getTimestamp()}] ${market.korean_name}은(는) 하락 코인으로 판단됩니다.`);
+      console.log(`- 이유: ${conditions.join(", ")}`);
+      return true;
+    } else {
+      console.log(`[${getTimestamp()}] ${market.korean_name}은(는) 하락 코인이 아닙니다.`);
+      const reasons = [];
+      if (USER.useMinimumIncreases && !isBelowMinimumDecreases) reasons.push("최소 하락률 미만");
+      if (USER.useTrendingMA && !isTrendingDownward) reasons.push("이동평균선 하락 추세가 아님");
+      if (USER.useBollinger && !isBearishTrend) reasons.push("볼린저밴드 하락 추세가 아님");
+      if (USER.usePSAR && !isPsarBearish) reasons.push("PSAR 하향이 아님");
+      console.log(`- 이유: ${reasons.join(", ")}`);
+      return false;
+    }
   }
 }
-}
-
 
 function calculateMovingAverages(candles) {
   const ma = {};
@@ -377,7 +436,7 @@ function calculateMovingAverages(candles) {
     ma.midMA = calculateEMA(candles, USER.targetMid);
     ma.longMA = calculateEMA(candles, USER.targetLong);
   }
-
+  ma.isTrendingDownward = ma.shortMA < ma.midMA && ma.midMA < ma.longMA;
   return ma;
 }
 
@@ -396,7 +455,7 @@ function calculateEMA(data, period, smoothingFactor = 2) {
   const multiplier = smoothingFactor / (period + 1);
 
   for (let i = period; i < data.length; i++) {
-    ema = (data[i].trade_price * multiplier) + (ema * (1 - multiplier));
+    ema = data[i].trade_price * multiplier + ema * (1 - multiplier);
   }
 
   return ema;
