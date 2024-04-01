@@ -340,7 +340,7 @@ async function checkSurge(market, candles) {
     };
 
     const psarResult = ti.PSAR.calculate(psarInput);
-    psar = psarResult[1];
+    psar = psarResult[0];
     isPsarBullish = psar < currentPrice;
     isPsarBearish = psar > currentPrice;
   }
