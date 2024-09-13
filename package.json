@@ -4,11 +4,7 @@
   "description": "",
   "scripts": {
     "short": "node short/short.js",
-    "gpt": "node gpt/makeGPT.js",
-    "short-build" : "node ./short/replaceConfig.js && pkg --targets node18-linux-x64,node18-macos-x64,node18-win-x64 --output ./dist/short/short ./short/short.js && shx cp ./short/config.json ./dist/short",
-    "sell-build"  : "node ./sell/replaceConfig.js && pkg --targets node18-linux-x64,node18-macos-x64,node18-win-x64 --output ./dist/sell/sell ./sell/sell.js && shx cp ./sell/config.json ./dist/sell",
-    "buy-build":    "node ./buy/replaceConfig.js && pkg --targets node18-linux-x64,node18-macos-x64,node18-win-x64 --output ./dist/buy/buy ./buy/buy.js && shx cp ./buy/config.json ./dist/buy",
-    "gpt-build": "pkg --targets node18-linux-x64,node18-macos-x64,node18-win-x64, --output ./dist/gpt/gpt ./gpt/makeGPT.js && shx cp ./gpt/config.json ./dist/gpt"
+    "gpt": "node gpt/makeGPT.js"
   },
   "author": "OCTO",
   "license": "ISC",

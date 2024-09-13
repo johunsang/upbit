@@ -1,10 +1,8 @@
 {
-  "id": "값입력필요",
-  "password": "값입력필요",
-  "access_key": "값입력필요",
-  "secret_key": "값입력필요",
+  "access_key": "Jxu8pwdmBRCInq8upHSkgD5FP8UoHnfdBJBBcpMh",
+  "secret_key": "PdlakVdgtfOzOaBg8agA7WxN60vPLfuralRcEx3W",
   "targetMarket": "ETH",
-  "sellIfBuyPriceIsHigherThan": 5000000,
-  "sellIfBuyPriceIsLowerThan": 6100000,
+  "sellIfBuyPriceIsHigherThan": 3159100,
+  "sellIfBuyPriceIsLowerThan": 3159300,
   "invest": 10000
 }

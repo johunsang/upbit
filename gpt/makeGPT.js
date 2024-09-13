@@ -1,5 +1,4 @@
 const UPBIT_SERVICE = require("../service/upbit");
-const AUTH_SERVICE = require("../service/auth");
 const fs = require("fs");
 const { type } = require("os");
 
@@ -37,16 +36,7 @@ const makeDocu = async (qry, append = false, fileName) => {
 
 const main = async () => {
   USER = await openConfig();
-
-  // makeDocu(USER.coinName + "의 분, 일, 주, 월 별로 각각 캔들 데이터입니다. 각 데이터는 시가 고가 종가 저가 누적금액 거래량이 있으며 최근 200개의 캔들을 가져 옵니다. 분의 경우 1,3,5,10,15,30,60,240분 별로 200개씩 가져 옵니다.", false);
-
-  const login = await AUTH_SERVICE.login(USER.id, USER.password);
-  if (!login.success) {
-    console.log("로그인 실패");
-    return;
-  } else {
-    console.log("로그인 성공");
-  }
+ 
   const token = await UPBIT_SERVICE.getToken(USER.access_key, USER.secret_key);
   // console.log(token);
   await makeMinutes(token);

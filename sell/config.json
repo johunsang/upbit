@@ -1,13 +1,11 @@
 {
-  "id": "A00878694",
-  "password": "a1234567!",
-  "access_key": "581zoHBYOjHdBqNrnCXjthvKEDqoG2Wx0rNxKsrk",
-  "secret_key": "EdmnZxxcc4k9doO01NaPVI9x6ElRF1GI2tJ14LJd",
-  "margin_percent": 3,
-  "margin_volume_percent": 100,
-  "stopLoss_percent": -5,
+    "access_key": "Jxu8pwdmBRCInq8upHSkgD5FP8UoHnfdBJBBcpMh",
+    "secret_key": "PdlakVdgtfOzOaBg8agA7WxN60vPLfuralRcEx3W",
+  "margin_percent": 1,
+  "margin_volume_percent": 100, 
+  "stopLoss_percent": -1, 
   "stopLoss_volume_percent": 100,
-  "exclude_markets": "",
-  "isLoveMyMarkets": false,
-  "myLovelyMarkets": ""
+  "exclude_markets": "BTC",
+  "isLoveMyMarkets": true,
+  "myLovelyMarkets": "BTC"
 }

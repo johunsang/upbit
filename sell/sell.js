@@ -1,5 +1,4 @@
 const UPBIT_SERVICE = require("../service/upbit");
-const AUTH_SERVICE = require("../service/auth");
 const fs = require("fs");
 const readline = require("readline").createInterface({
   input: process.stdin,
@@ -13,14 +12,7 @@ let USER = {};
 
 async function init() {
   await loadConfig();
-
-  const login = await AUTH_SERVICE.login(USER.id, USER.password);
-  if (!login.success) {
-    console.log("로그인 실패");
-    return;
-  }else{
-    console.log("로그인 성공");
-  }
+ 
   const token = await UPBIT_SERVICE.getToken(USER.access_key, USER.secret_key);
 
 
