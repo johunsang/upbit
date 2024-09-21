@@ -1,6 +1,6 @@
 {
-  "access_key": " ",
-  "secret_key": " ",
+    "access_key": "",
+    "secret_key": "",
   "coinCode": "BTC",
   "coinName": "비트코인"
 }

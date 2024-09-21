@@ -1,0 +1,8 @@
+{
+    "access_key": "",
+    "secret_key": "",
+  "targetMarket": "ETH",
+  "sellIfBuyPriceIsHigherThan": 3159100,
+  "sellIfBuyPriceIsLowerThan": 3159300,
+  "invest": 10000
+}

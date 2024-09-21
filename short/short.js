@@ -255,7 +255,7 @@ async function identifySurgingCoins(markets, token) {
 
 async function checkSurge(market, candles) {
   let currentPrice = 0;
-  await delay(100);
+  await delay(1000);
   try {
     currentPrice = candles[0].trade_price;
   } catch (e) {
@@ -264,7 +264,7 @@ async function checkSurge(market, candles) {
     console.log(candles[0]);
     return;
   }
-
+  await delay(1000);
   const { shortIncrease, midIncrease, longIncrease } = calculateIncreases(candles, currentPrice);
 
   const movingAverages = calculateMovingAverages(candles);
@@ -445,6 +445,15 @@ function calculateEMA(data, period, smoothingFactor = 2) {
   return ema;
 }
 function calculateIncreases(candles, currentPrice) {
+
+  if (candles.length < USER.targetLong) {
+    console.log(`[${getTimestamp()}] 캔들 정보가 부족합니다. 200개 캔들 이하만 제공됩니다.`);
+    return {
+      shortIncrease: 0,
+      midIncrease: 0,
+      longIncrease: 0,
+    };
+  }
   return {
     shortIncrease: calculateIncrease(candles[USER.targetShort].trade_price, currentPrice),
     midIncrease: calculateIncrease(candles[USER.targetMid].trade_price, currentPrice),
@@ -453,6 +462,7 @@ function calculateIncreases(candles, currentPrice) {
 }
 
 function calculateIncrease(fromPrice, toPrice) {
+
   return ((toPrice - fromPrice) / fromPrice) * 100;
 }
 

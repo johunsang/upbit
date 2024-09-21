@@ -1,0 +1,11 @@
+{
+    "access_key": "",
+    "secret_key": "",
+  "margin_percent": 1,
+  "margin_volume_percent": 100, 
+  "stopLoss_percent": -1, 
+  "stopLoss_volume_percent": 100,
+  "exclude_markets": "BTC",
+  "isLoveMyMarkets": true,
+  "myLovelyMarkets": "BTC"
+}
