@@ -2,6 +2,7 @@ const UPBIT_SERVICE = require("../service/upbit");
 const ti = require("technicalindicators");
 const fs = require("fs");
 const path = require('path');
+const os = require('os');
 
 let isRunning = false;
 let USER = {};
@@ -272,70 +273,7 @@ async function identifySurgingCoins(markets, token) {
   }
 }
 
-async function loadPurchaseLog() {
-  try {
-    if (fs.existsSync(USER.purchaseLogFile)) {
-      const logData = fs.readFileSync(USER.purchaseLogFile, 'utf8');
-      return JSON.parse(logData);
-    }
-  } catch (error) {
-    console.error(`[${getTimestamp()}] 구매 로그 파일을 읽는 중 오류가 발생했습니다:`, error);
-  }
-  return {};
-}
 
-function canPurchaseToday(purchaseLog) {
-  if (!USER.enableDailyPurchaseLimit) return true;
-
-  const today = new Date().toISOString().split('T')[0];
-  const todayPurchases = purchaseLog[today] || 0;
-  return todayPurchases < USER.dailyPurchaseLimit;
-}
-
-function getLogFilePath(date) {
-  const logDir = path.join(__dirname, 'logs');
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-  }
-  return path.join(logDir, `purchase_log_${date}.json`);
-}
-
-function readDailyLog(date) {
-  const filePath = getLogFilePath(date);
-  if (fs.existsSync(filePath)) {
-    try {
-      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    } catch (error) {
-      console.error(`[${getTimestamp()}] 로그 파일 읽기 오류 (${date}):`, error);
-    }
-  }
-  return [];
-}
-
-function writeDailyLog(date, logs) {
-  const filePath = getLogFilePath(date);
-  try {
-    fs.writeFileSync(filePath, JSON.stringify(logs, null, 2), 'utf8');
-    console.log(`[${getTimestamp()}] 로그 파일 업데이트 완료 (${date})`);
-  } catch (error) {
-    console.error(`[${getTimestamp()}] 로그 파일 쓰기 오류 (${date}):`, error);
-  }
-}
-
-function updatePurchaseLog(market, orderDetails) {
-  const today = new Date().toISOString().split('T')[0];
-  const logs = readDailyLog(today);
-
-  logs.push({
-    timestamp: new Date().toISOString(),
-    market: market,
-    orderDetails: orderDetails
-  });
-
-  writeDailyLog(today, logs);
-
-  console.log(`[${getTimestamp()}] ${market} 구매 기록 추가됨. 오늘의 총 거래 수: ${logs.length}`);
-}
 
 async function checkSurge(market, candles) {
   let currentPrice = 0;
@@ -677,31 +615,59 @@ function delay(ms) {
 }
 
 
+function getLogFilePath(date) {
+  const logDir = path.join('.', 'logs');
+  if (!fs.existsSync(logDir)) {
+    console.error(`[${getTimestamp()}] 로그 디렉토리가 존재하지 않습니다: ${logDir}`);
+    process.exit(1);  // 프로그램 종료
+  }
+  return path.join(logDir, `purchase_log_${date}.json`);
+}
+
+function readDailyLog(date) {
+  const filePath = getLogFilePath(date);
+  if (fs.existsSync(filePath)) {
+    try {
+      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    } catch (error) {
+      console.error(`[${getTimestamp()}] 로그 파일 읽기 오류 (${date}):`, error);
+    }
+  }
+  return [];
+}
+
+function writeDailyLog(date, logs) {
+  const filePath = getLogFilePath(date);
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(logs, null, 2), 'utf8');
+    console.log(`[${getTimestamp()}] 로그 파일 업데이트 완료 (${date})`);
+  } catch (error) {
+    console.error(`[${getTimestamp()}] 로그 파일 쓰기 오류 (${date}):`, error);
+  }
+}
+
+function updatePurchaseLog(market, orderDetails) {
+  const today = new Date().toISOString().split('T')[0];
+  const logs = readDailyLog(today);
+
+  logs.push({
+    timestamp: new Date().toISOString(),
+    market: market,
+    orderDetails: orderDetails
+  });
+
+  writeDailyLog(today, logs);
+
+  console.log(`[${getTimestamp()}] ${market} 구매 기록 추가됨. 오늘의 총 거래 수: ${logs.length}`);
+}
 
 function initPurchaseLog() {
-  const logFilePath = path.resolve(__dirname, USER.purchaseLogFile);
-  console.log(`[${getTimestamp()}] 로그 파일 경로: ${logFilePath}`);
-
-  try {
-    // 디렉토리가 존재하지 않으면 생성
-    const dir = path.dirname(logFilePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      console.log(`[${getTimestamp()}] 디렉토리를 생성했습니다: ${dir}`);
-    }
-
-    if (fs.existsSync(logFilePath)) {
-      const data = fs.readFileSync(logFilePath, 'utf8');
-      purchaseLog = JSON.parse(data);
-      console.log(`[${getTimestamp()}] 기존 구매 로그를 불러왔습니다.`);
-    } else {
-      purchaseLog = {};
-      console.log(`[${getTimestamp()}] 새로운 구매 로그를 시작합니다.`);
-    }
-  } catch (error) {
-    console.error(`[${getTimestamp()}] 구매 로그 초기화 중 오류 발생:`, error);
-    purchaseLog = {};
+  const logDir = path.join('.', 'logs');
+  if (!fs.existsSync(logDir)) {
+    console.error(`[${getTimestamp()}] 로그 디렉토리가 존재하지 않습니다: ${logDir}`);
+    process.exit(1);  // 프로그램 종료
   }
+  console.log(`[${getTimestamp()}] 로그 디렉토리 확인 완료: ${logDir}`);
 }
 
 
