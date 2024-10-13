@@ -5,7 +5,7 @@
   "scripts": {
     "short": "node short/short.js",
     "gpt": "node gpt/makeGPT.js",
-    "buildshort" : "pkg ./short/short.js --targets node18-win-x64 --output ./builds/short/upbit-short-win-x64",
+    "buildshort": "pkg ./short/short.js --targets node18-win-x64 --output ./builds/short/upbit-short-win-x64",
     "buildbuy": "pkg ./buy/buy.js --targets node18-win-x64 --output ./builds/buy/upbit-buy-win-x64",
     "buildsell": "pkg ./sell/sell.js --targets node18-win-x64 --output ./builds/sell/upbit-sell-win-x64",
     "buildgpt": "pkg ./gpt/makeGPT.js --targets node18-win-x64 --output ./builds/gpt/upbit-gpt-win-x64"
@@ -14,9 +14,12 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.6.7",
+    "csv-parse": "^5.5.6",
     "jsonwebtoken": "^9.0.2",
+    "mathjs": "^13.1.1",
     "querystring": "^0.2.1",
     "request": "^2.88.2",
+    "simple-statistics": "^7.8.5",
     "technicalindicators": "^3.1.0",
     "tulind": "^0.8.20"
   },

@@ -43,7 +43,7 @@ const checkMyCoin = async (myCoinList, token) => {
   console.log(`[${getTimestamp()}] 제외마켓 ${ excludeCoin}`);
 
   for(const coin of myCoinList){
-    // console.log(coin);
+    console.log(coin);
     if(coin.currency === "KRW"){
       continue;
     }
@@ -200,9 +200,9 @@ function question(query) {
   return new Promise((resolve) => readline.question(query, resolve));
 }
 
-console.log(`[${getTimestamp()}] 1분 후에 프로그램을 시작합니다. 1분마다 프로그램이 반복합니다`);
+console.log(`[${getTimestamp()}] 10초 후에 프로그램을 시작합니다. 1초마다 프로그램이 반복합니다`);
 
 setInterval(() => {
-  console.log(`[${getTimestamp()}] 1분 후에 프로그램을 시작합니다. 1분마다 프로그램이 반복합니다`);
+  console.log(`[${getTimestamp()}] 10초 후에 프로그램을 시작합니다. 1초마다 프로그램이 반복합니다`);
   init();
-}, 60000);
+}, 5000);

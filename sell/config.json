@@ -1,11 +1,11 @@
 {
-    "access_key": "",
-    "secret_key": "",
+  "access_key": "akQEOHmtp3hQW3vpWIAvZBIi9jJpTG2saK25aATO",
+  "secret_key": "hDJWTNLJaVpDQPUz1xKBgpaxr6o4NoxE56aPtMVD",
   "margin_percent": 1,
   "margin_volume_percent": 100, 
-  "stopLoss_percent": -1, 
+  "stopLoss_percent": -10, 
   "stopLoss_volume_percent": 100,
-  "exclude_markets": "BTC",
-  "isLoveMyMarkets": true,
+  "exclude_markets": "DMT",
+  "isLoveMyMarkets": false,
   "myLovelyMarkets": "BTC"
 }
